@@ -1,9 +1,11 @@
 import json
 from newsapi import NewsApiClient
 import boto3
+import datetime
 from boto3.dynamodb.conditions import Key, Attr
 import pymysql.cursors
 import pymysql
+import random
 import math
 
 def datapull(event, context):
@@ -56,21 +58,32 @@ def datapull(event, context):
 
     def writeArticlesToDB(table, articles):
         for article in articles:
+            for i in article:
+                if article[i] == '':
+                    article[i] = 'Null'
+            articleID = str(random.randint(1, 201)) + "_" + article['source']['id']
             try:
                 response = table.put_item(
                     Item={
-                        'ArticleID': article['url'],
-                        'info': article #This is the json object I want to store
+                        'ArticleID': articleID,
+                        'author': article['author'],
+                        'description': article['description'],
+                        'publishedAt': article['publishedAt'],
+                        'source': article['source'],
+                        'title': article['title'],
+                        'url': article['url'],
+                        'urlToImage': article['urlToImage'],
+                        'writtenAt':  str(datetime.datetime.now())
                     }
                 )
             except:
                 print("there was a problem with this record:")
-                print("article")
+                print(article)
 
     credentials = getCredentials()
     newsapi = NewsApiClient(api_key=credentials['NewsAPIKey'])
     dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
-    table = dynamodb.Table('NewsArticles')
+    table = dynamodb.Table('News-Articles')
     source = retrieveNewsSource(credentials)
 
     firstCallArticles = newsapi.get_everything(sources=source[0], from_parameter=source[8], sort_by='publishedAt', page=pageNum, page_size=pageSize)
@@ -93,3 +106,4 @@ def datapull(event, context):
 
 if __name__ == "__main__":
     datapull('', '')
+
