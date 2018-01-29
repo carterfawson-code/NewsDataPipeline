@@ -33,7 +33,7 @@ functions:
   NewsPipelineLambda:
     handler: handler.datapull
     events:
-      - schedule: rate(12 minutes)
+      - schedule: rate(8 minutes)
 
 plugins:
   - serverless-python-requirements
